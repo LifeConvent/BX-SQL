@@ -14,19 +14,20 @@ SELECT C.NEW_CODE_NAME,T.GETMONEY,T.SUM FROM
     WHERE 1=1
         AND TCPA.DERIV_TYPE = '004'
         AND TCPA.ORGAN_CODE LIKE '8647%'
-        AND TCAC.ACCEPT_STATUS<>12
-        AND TCPA.BUSI_APPLY_DATE = Trunc(SYSDATE)-1 --业务申请时间
+        AND TCAC.ACCEPT_STATUS NOT IN ('1','2','3','12','19','20','21','24','25')
+        AND TCAC.VALIDATE_TIME = Trunc(SYSDATE)-1 --生效时间
    UNION
    SELECT TCAC.CHANGE_ID,B.REAL_NAME,TCCM.POLICY_CODE,TCAC.ACCEPT_CODE AS BUSINESS_CODE,TCAC.SERVICE_CODE,0 AS GETMONEY-- 按0处理
         FROM DEV_PAS.T_CS_ACCEPT_CHANGE@BINGXING_168_15 TCAC
         LEFT JOIN DEV_PAS.T_CS_CONTRACT_MASTER@BINGXING_168_15 TCCM
         ON TCCM.CHANGE_ID = TCAC.CHANGE_ID
+        LEFT JOIN DEV_PAS.T_CS_APPLICATION@BINGXING_168_15 TCA
+        ON TCA.CHANGE_ID = TCAC.CHANGE_ID
         JOIN DEV_PAS.T_UDMP_USER@BINGXING_168_15 B
         ON TCAC.INSERT_BY = B.USER_ID
-            WHERE (TCAC.ACCEPT_TIME = Trunc(SYSDATE)-1 --受理时间
-                  OR TCAC.VALIDATE_TIME = Trunc(SYSDATE)-1) --生效时间
+            WHERE TCA.APPLY_TIME = Trunc(SYSDATE)-1 --申请时间
             AND TCCM.ORGAN_CODE LIKE '8647%'
-            AND TCAC.ACCEPT_STATUS<>12
+        AND TCAC.ACCEPT_STATUS NOT IN ('1','2','3','12','19','20','21','24','25')
    ) B 
     LEFT JOIN T_CS_APPLICATION@BINGXING_168_15  TCA
          ON TCA.CHANGE_ID = B.CHANGE_ID
@@ -52,15 +53,15 @@ select /*+PARALLEL(80)*/C.NEW_CODE_NAME,T.getmoney,T.SUM FROM T_CODEMAPPING C,
 (select TRIM(n.AppType) AS AppType,SUM(m.GETMONEY+m.GETINTEREST)AS getmoney,COUNT(DISTINCT m.EdorAcceptNo) AS SUM
   from lis.lpedoritem m
   LEFT JOIN LIS.LPEdorApp n
-  ON M.EdorAcceptNo = n.EdorAcceptNo
-where (m.edorappdate = Trunc(SYSDATE)-1 OR M.EdorValiDate = Trunc(SYSDATE)-1) --日期
+  ON m.EdorAcceptNo = n.EdorAcceptNo
+where (m.edorappdate = Trunc(SYSDATE)-1 OR m.EdorValiDate = Trunc(SYSDATE)-1) --日期
    and exists (select 1
           from lis.lccont t
          where t.conttype = '1'
            and t.appflag in ('1', '4')
            and t.managecom like '8647%' 
            and t.contno = m.contno)
-   AND m.EdorState<>'7'
+   AND m.EdorState NOT IN ('1','2','3','12','19','20','21','24','25')
 GROUP BY TRIM(n.AppType)
 ORDER BY TRIM(n.AppType)) T 
 WHERE TRIM(C.OLD_CODE) = T.AppType AND C.REMARK IS NULL AND C.CODETYPE='SERVICE_TYPE'
