@@ -1,0 +1,46 @@
+SELECT COUNT(1) AS 笔数, SUM(A.FEE_AMOUNT) AS 金额
+  FROM DEV_PAS.T_PAY_DUE@BINGXING_168_15 A --满期金给付应领表
+  JOIN DEV_PAS.T_CONTRACT_MASTER@BINGXING_168_15 D --保单主表
+    ON A.POLICY_ID = D.POLICY_ID
+  JOIN DEV_PAS.T_PAY_PLAN@BINGXING_168_15 DD --满期金给付计划表
+    ON A.PLAN_ID = DD.PLAN_ID
+ WHERE 1 = 1
+   AND DD.PAY_PLAN_TYPE = '4' --满期金给付类型
+   AND D.ORGAN_CODE LIKE '8647%' --青岛分公司
+   AND D.LIABILITY_STATE <> 3 --不为终止状态
+   AND A.PAY_DUE_DATE = TRUNC(SYSDATE)-1
+   AND A.FEE_STATUS = '00'
+ ORDER BY A.POLICY_CODE DESC;
+ 
+SELECT COUNT(1) AS 笔数，SUM(T1.GETMONEY) AS 金额
+  FROM(SELECT T1.CONTNO, T1.GETMONEY
+          FROM LIS.LJAGETDRAW T1
+          LEFT JOIN LIS.LMDUTYGET T2
+            ON T1.GETDUTYCODE = T2.GETDUTYCODE
+          LEFT JOIN LIS.LCCONT T3
+            ON T1.CONTNO = T3.CONTNO
+          LEFT JOIN LIS.LJSGETDRAW T4
+            ON T3.CONTNO = T4.CONTNO
+         WHERE T3.CONTTYPE = '1'
+           AND T3.APPFLAG IN ('1', '4') --
+           AND T3.MANAGECOM LIKE '8647%'
+           AND T2.GETTYPE1 IN ('0') --0：代表满期金； 1代表生存金
+           AND T1.GETDATE = TRUNC(SYSDATE)-1
+        UNION ALL
+        SELECT T1.CONTNO, T1.GETMONEY
+          FROM LIS.LJSGETDRAW T1
+          LEFT JOIN LIS.LMDUTYGET T2
+            ON T1.GETDUTYCODE = T2.GETDUTYCODE
+          LEFT JOIN LIS.LCCONT T3
+            ON T1.CONTNO = T3.CONTNO
+          LEFT JOIN LIS.LJSGETDRAW T4
+            ON T3.CONTNO = T4.CONTNO
+         WHERE T3.CONTTYPE = '1'
+           AND T3.APPFLAG IN ('1', '4')
+           AND T3.MANAGECOM LIKE '8647%'
+           AND T2.GETTYPE1 IN ('0') --0：代表满期金； 1代表生存金
+           AND T1.GETDATE = TRUNC(SYSDATE)-1) T1 ;
+
+/******************************************************* 明细 *************************************************************/
+
+

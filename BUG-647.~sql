@@ -1,0 +1,10 @@
+  /* 验证保单能否申请保全 */
+    select ContNo,AppntName from lccont where contno = '' and appflag in ( '1', '4');
+    
+   select missionid,submissionid from lwmission where  activityid = '0000000092' and missionprop1 = '';--mEdorAcceptNo
+   
+   --个人保单批改信息
+		SELECT EdorNo,EdorType,ContNo,InsuredNo,polno FROM lpedoritem WHERE EdorAcceptNo=''
+		
+		
+  
