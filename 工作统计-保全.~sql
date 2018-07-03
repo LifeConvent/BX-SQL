@@ -80,7 +80,7 @@ INSERT INTO TMP_LIS_2001
 --CREATE TABLE  TMP_LIS_2001  AS
 select /*+PARALLEL(80)*/ m.contno,
        m.edoracceptno,m.operator,
-       SUM(m.GETMONEY+m.GETINTEREST) AS getmoney
+       SUM(m.GETMONEY/*+m.GETINTEREST*/) AS getmoney
   from lis.lpedoritem m
 where 1=1 
    --AND m.edorappdate = date'2018-06-27'                   --生效日期
