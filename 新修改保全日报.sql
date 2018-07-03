@@ -50,6 +50,7 @@ SELECT C.NEW_CODE_NAME,T.SUM FROM
     WHERE 1=1
         AND TCPA.DERIV_TYPE = '004'
         AND TCPA.ORGAN_CODE LIKE '8647%'
+        AND TCAC.ACCEPT_STATUS<>12
         AND Trunc(TCPA.BUSI_APPLY_DATE) = Trunc(SYSDATE)-1 --业务申请时间
    UNION
    SELECT TCAC.CHANGE_ID,B.REAL_NAME,TCCM.POLICY_CODE,TCAC.ACCEPT_CODE AS BUSINESS_CODE,TCAC.SERVICE_CODE
@@ -63,6 +64,7 @@ SELECT C.NEW_CODE_NAME,T.SUM FROM
         ON TCAC.INSERT_BY = B.USER_ID
             WHERE Trunc(TCA.APPLY_TIME) = Trunc(SYSDATE)-1 --申请时间
             AND TCCM.ORGAN_CODE LIKE '8647%'
+            AND TCAC.ACCEPT_STATUS<>12
    ) B 
     LEFT JOIN T_CS_APPLICATION@BINGXING_168_15  TCA
          ON TCA.CHANGE_ID = B.CHANGE_ID
@@ -115,6 +117,7 @@ where m.EdorValiDate = Trunc(SYSDATE)-1--日期
            and t.appflag in ('1', '4')
            and t.managecom like '8647%' 
            and t.contno = m.contno)
+   AND m.EdorState<>'7'
 GROUP BY TRIM(n.AppType)
 ORDER BY TRIM(n.AppType)) T 
 WHERE TRIM(C.OLD_CODE) = T.AppType AND C.REMARK IS NULL AND C.CODETYPE='SERVICE_TYPE'
